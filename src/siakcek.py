@@ -84,10 +84,17 @@ def processData(soup, SKSTransfer, process_type):
     if SKSTransfer != None:
         sks_t = SKSTransfer[0]
         try:
-            SKSTransfer[1] = k20s[SKSTransfer[1]]
+            if angkatan < 20:
+                namaMatkul = k16s[SKSTransfer[1]]
+            elif angkatan < 24:
+                namaMatkul = k20s[SKSTransfer[1]]
         except KeyError:
-            pass
-        matkul_done.append(SKSTransfer[1])
+            namaMatkul = SKSTransfer[1]
+        matkul_done.append(namaMatkul)
+        if namaMatkul in kw:
+            sks_done_w.append(SKSTransfer[2])
+        else:
+            sks_done_p.append(SKSTransfer[2])
     for row in table.findAll("td"):
         if any([x in row.text for x in skip_data]):
             # print(row.text + ("(removed)"))
@@ -345,7 +352,7 @@ def submit(event):
         soup = BeautifulSoup(htmlFile, features="lxml")
         process_type = ("---data from uploaded source---")
         if transfer.get() == 1:
-            transferSKS = [ transferPilihan.get(), transferMatkul.get() ]
+            transferSKS = [ transferPilihan.get(), transferMatkul.get(), SKSMatkul.get() ]
             if transferSKS[0] == '':
                 transferSKS[0] = 0
             else:
@@ -353,6 +360,14 @@ def submit(event):
                     transferSKS[0] = int(transferSKS[0])
                 except ValueError:
                     mb.showError(title="Error found", message="Nilai SKS Pilihan yang dimasukkan tidak tepat")
+                    return
+            if transferSKS[2] == '':
+                transferSKS[2] = 0
+            else:
+                try:
+                    transferSKS[2] = int(transferSKS[2])
+                except ValueError:
+                    mb.showError(title="Error found", message="Nilai SKS Mata Kuliah yang dimasukkan tidak tepat")
                     return
         else:
             transferSKS = None
@@ -400,18 +415,25 @@ header2 = tk.Label(transferFrame, text="Spesifikan transfer SKS jika ada", justi
 header2.grid(row=0, columnspan=2)
 transferPilihan = tk.StringVar()
 transferMatkul = tk.StringVar()
+SKSMatkul = tk.StringVar()
 transferLabel1 = tk.Label(transferFrame, text="Transfer SKS Pilihan*", justify='left')
 transferEntry1 = tk.Entry(transferFrame, textvariable=transferPilihan, justify='left')
 transferLabel2 = tk.Label(transferFrame, text="Transfer Mata Kuliah**", justify='left')
 transferEntry2 = tk.Entry(transferFrame, textvariable=transferMatkul, justify='left')
+transferLabel3 = tk.Label(transferFrame, text="SKS Mata Kuliah**", justify='left')
+transferEntry3 = tk.Entry(transferFrame, textvariable=SKSMatkul, justify='left')
 note1 = tk.Label(transferFrame, text="  * Isi dengan jumlah SKS yang dikonversi sebagai SKS pilihan", justify='left')
 note2 = tk.Label(transferFrame, text=" ** Isi dengan nama mata kuliah yang dikonversi, sesuai dengan yang ditentukan pada sistem SIAK", justify='left')
+note3 = tk.Label(transferFrame, text="*** Isi dengan jumlah SKS mata kuliah yang dikonversi", justify='left')
 transferLabel1.grid(row=1, column=0)
 transferEntry1.grid(row=1, column=1)
 transferLabel2.grid(row=2, column=0)
 transferEntry2.grid(row=2, column=1)
-note1.grid(row=3, columnspan=2)
-note2.grid(row=4, columnspan=2)
+transferLabel3.grid(row=3, column=0)
+transferEntry3.grid(row=3, column=1)
+note1.grid(row=4, columnspan=2)
+note2.grid(row=5, columnspan=2)
+note3.grid(row=6, columnspan=2)
 
 submitButton = tk.Button(root, text="Submit")
 submitButton.bind('<Button-1>', submit)
